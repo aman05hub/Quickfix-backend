@@ -3,10 +3,12 @@ const User = require("../models/User-model");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 // const transporter = require("../config/mail");
-const { Resend } = require("resend");
+// const { Resend } = require("resend");
+const transactionalEmailsApi = require("../config/mail");
+const Brevo = require("@getbrevo/brevo");
 
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+// const resend = new Resend(process.env.RESEND_API_KEY);
 async function sendOtp(req, res){
     try{
         const { email } = req.body;
@@ -53,11 +55,11 @@ async function sendOtp(req, res){
         console.log("Sending email...");
 
         //Email OTP
-        await resend.emails.send({
-            from: "QuickFix <onboarding@resend.dev>",
-            to: email,
-            subject: "QuickFix OTP Verification",
-            html: `
+        const sendSmtpEmail = new Brevo.SendSmtpEmail();
+        sendSmtpEmail.sender = { name: "QuickFix", email: "noreply.quickfix.update@gmail.com" };
+        sendSmtpEmail.to = [{ email: email }];
+        sendSmtpEmail.subject = "QuickFix OTP Verification";
+        sendSmtpEmail.htmlContent = `
             <div style="font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px;">
                 <div style="max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 10px; text-align: center;">
                 
@@ -85,6 +87,7 @@ async function sendOtp(req, res){
             `
         });
 
+        await transactionalEmailsApi.sendTransacEmail(sendSmtpEmail);
         console.log("Email sent successfully!");
 
         res.json({
