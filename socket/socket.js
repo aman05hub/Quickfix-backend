@@ -7,7 +7,8 @@ function setupSocket(server) {
         cors: {
             origin: [
                 "http://localhost:5173", 
-                "https://quickfix-frontend-85am9xqvj-aman05hubs-projects.vercel.app"
+                "https://quickfix-frontend-85am9xqvj-aman05hubs-projects.vercel.app",
+                "https://quickfix-frontend-git-main-aman05hubs-projects.vercel.app"
             ],
             
             methods: ["GET", "POST"],
