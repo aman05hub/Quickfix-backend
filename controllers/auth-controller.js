@@ -2,12 +2,11 @@ require("dotenv").config();
 const User = require("../models/User-model");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+// const transporter = require("../config/mail");
 const { Resend } = require("resend");
 
-const resendApiKey = process.env.RESEND_API_KEY?.trim();
-const resend = resendApiKey ? new Resend(resendApiKey) : null;
-const resendFrom = process.env.RESEND_FROM_EMAIL?.trim() || "QuickFix <onboarding@resend.dev>";
 
+const resend = new Resend(process.env.RESEND_API_KEY);
 async function sendOtp(req, res){
     try{
         const { email } = req.body;
@@ -23,14 +22,6 @@ async function sendOtp(req, res){
 
         if(!email) {
             return res.status(400).json({ message: "Email is required" });
-        }
-
-        if(!process.env.RESEND_API_KEY) {
-            return res.status(500).json({ message: "RESEND_API_KEY is missing" });
-        }
-
-        if(!resend) {
-            return res.status(500).json({ message: "Resend client could not be initialized" });
         }
 
         //Check existing user
@@ -63,7 +54,7 @@ async function sendOtp(req, res){
 
         //Email OTP
         await resend.emails.send({
-            from: resendFrom,
+            from: "QuickFix <onboarding@resend.dev>",
             to: email,
             subject: "QuickFix OTP Verification",
             html: `
@@ -101,10 +92,9 @@ async function sendOtp(req, res){
         });
 
     } catch(err){
-        console.log("Send OTP Error:", err);
+        console.log("Send OTP Error:", err.message);
         res.status(500).json({
-            message: err?.message || "Failed to send OTP email",
-            details: err?.response?.data || err?.cause || null
+            message: err.message
         });
     }
 }
