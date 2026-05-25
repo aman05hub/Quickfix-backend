@@ -3,8 +3,6 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const transporter = require("../config/mail");
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 async function sendOtp(req, res){
     try{
         const { email } = req.body;
