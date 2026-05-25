@@ -2,7 +2,6 @@ const User = require("../models/User-model");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const transporter = require("../config/mail");
-const { Resend } = require("resend");
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -52,8 +51,8 @@ async function sendOtp(req, res){
         console.log("Sending email...");
 
         //Email OTP
-        await resend.emails.send({
-            from: "QuickFix <onboarding@resend.dev>" ,
+        await transporter.sendMail({
+            from: `"QuickFix "<${process.env.EMAIL_USER}> `,
             to: email,
             subject: "QuickFix OTP Verification",
             html: `
