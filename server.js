@@ -30,7 +30,7 @@ server.headersTimeout = 120000;
 app.use(cors({
     origin: [
         "http://localhost:5173",
-        "https://quick-fix-mdud.onrender.com"
+        "https://quickfix-frontend-85am9xqvj-aman05hubs-projects.vercel.app"
     ],
     credentials: true
 }));
