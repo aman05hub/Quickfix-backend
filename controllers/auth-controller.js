@@ -13,6 +13,15 @@ async function sendOtp(req, res){
     try{
         const { email } = req.body;
 
+        console.log("EMAIL_USER:", process.env.EMAIL_USER);
+
+        console.log(
+            "EMAIL_PASS:",
+            process.env.EMAIL_PASS ? "EXISTS" : "MISSING"
+        );
+
+        console.log("Incoming Email:", email);
+
         if(!email) {
             return res.status(400).json({ message: "Email is required" });
         }
@@ -28,6 +37,8 @@ async function sendOtp(req, res){
 
         //Generate OTP
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+        console.log("OTP:",otp);
 
         //Save Otp in DB
         await User.findOneAndUpdate(
