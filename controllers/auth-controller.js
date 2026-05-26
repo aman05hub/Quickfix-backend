@@ -6,7 +6,6 @@ const jwt = require("jsonwebtoken");
 // const { Resend } = require("resend");
 const transactionalEmailsApi = require("../config/mail");
 const SibApiV3Sdk = require("@getbrevo/brevo");
-const OtpModel = require("../models/Otp-model");
 
 
 // const resend = new Resend(process.env.RESEND_API_KEY);
@@ -41,6 +40,8 @@ async function sendOtp(req, res){
             },
             { upsert: true, new: true }
         );
+
+        console.log("Sending email...");
 
         //Email OTP
         await transactionalEmailsApi.sendTransacEmail({
@@ -98,99 +99,59 @@ async function verifyOtp(req, res){
 
         const { name, email, password, role, profession, serviceType ,otp } = req.body; 
 
+        //Find user
+        const user = await User.findOne({ email });
 
-//         //Find user
-//         const user = await User.findOne({ email });
-
-//         if(!user){
-//             return res.status(400).json({
-//                 message: "user not found"
-//             })
-//         }
-
-//         //OTP Check from DB
-//         if(!user.otp || user.otp.toString() !== otp.toString().trim()){
-//             return res.status(400).json({
-//                 message: "Invalid OTP ❌"
-//             })
-//         }
-
-//         //OTP Expire Check
-//         if(user.otpExpire < Date.now()) {
-//             return res.status(400).json({
-//                 message: "OTP expired ⌛"
-//             })
-//         }
-
-//         //Hash password
-//         const hashedPassword = await bcrypt.hash(password, 10);
-
-//         const userRole = role === "provider" ? "provider" : "user";
-
-
-//         console.log("ENTERED OTP:", otp);
-// console.log("SAVED OTP:", user.otp);
-// console.log("EXPIRE:", user.otpExpire);
-// console.log("NOW:", Date.now());
-
-//         //Update existing user
-//         user.name = name;
-//         user.password = hashedPassword;
-//         user.role = userRole;
-//         user.profession = userRole === "provider" ? profession : null;
-//         user.serviceType = userRole === "provider" ? serviceType : null;
-//         user.isApproved = userRole === "provider" ? false : true;
-//         user.isVerified = true;
-
-//         //Clear OTP
-//         user.otp = null;
-//         user.otpExpire = null;
-
-//         await user.save();
-
-//         res.status(201).json({
-//             message: "Registration successful ✅",
-//             user,
-//         })
-
-         const otpRecord = await OtpModel.findOne({ email });
-
-        if (!otpRecord) {
-            return res.status(400).json({ message: "OTP not found. Please request a new one." });
+        if(!user){
+            return res.status(400).json({
+                message: "user not found"
+            })
         }
 
-        if (otpRecord.otp.toString() !== otp.toString().trim()) {
-            return res.status(400).json({ message: "Invalid OTP ❌" });
+        //OTP Check from DB
+        if(!user.otp || user.otp.toString() !== otp.toString().trim()){
+            return res.status(400).json({
+                message: "Invalid OTP ❌"
+            })
         }
 
-        if (otpRecord.otpExpire < Date.now()) {
-            return res.status(400).json({ message: "OTP expired ⌛" });
+        //OTP Expire Check
+        if(user.otpExpire < Date.now()) {
+            return res.status(400).json({
+                message: "OTP expired ⌛"
+            })
         }
 
-        // OTP valid — NOW create the user
+        //Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
+
         const userRole = role === "provider" ? "provider" : "user";
 
-        const newUser = await User.create({
-            name,
-            email,
-            password: hashedPassword,
-            role: userRole,
-            profession: userRole === "provider" ? profession : null,
-            serviceType: userRole === "provider" ? serviceType : null,
-            isApproved: userRole === "provider" ? false : true,
-            isVerified: true,
-        });
 
-        // Delete OTP record after successful registration
-        await OtpModel.deleteOne({ email });
+        console.log("ENTERED OTP:", otp);
+console.log("SAVED OTP:", user.otp);
+console.log("EXPIRE:", user.otpExpire);
+console.log("NOW:", Date.now());
+
+        //Update existing user
+        user.name = name;
+        user.password = hashedPassword;
+        user.role = userRole;
+        user.profession = userRole === "provider" ? profession : null;
+        user.serviceType = userRole === "provider" ? serviceType : null;
+        user.isApproved = userRole === "provider" ? false : true;
+        user.isVerified = true;
+
+        //Clear OTP
+        user.otp = null;
+        user.otpExpire = null;
+
+        await user.save();
 
         res.status(201).json({
             message: "Registration successful ✅",
-            user: newUser,
-        });
-
-
+            user,
+        })
     }catch(err){
         console.log("Verify OTP Error:", err);
         res.status(500).json({
