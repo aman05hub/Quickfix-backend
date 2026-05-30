@@ -4,7 +4,7 @@ const Service = require("../models/Service-model");
 const createService = async (req, res) => {
     try{
 
-        const { title, price, description, category } = req.body;
+        const { title, serviceType, price, description, category } = req.body;
 
         const provider = req.user;
 
@@ -20,7 +20,7 @@ const createService = async (req, res) => {
             })
         }
 
-        if (!title || !price || !category){
+        if (!serviceType || !price || !category){
             return res.status(400).json({
                 message: "All required fields must be filled",
             });
@@ -28,7 +28,8 @@ const createService = async (req, res) => {
 
         //Cerate service
         const service = await Service.create({
-            title,
+            title: serviceType,
+            serviceType,
             description,
             price,
             category,
