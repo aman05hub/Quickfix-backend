@@ -3,8 +3,12 @@ const User = require("../models/User-model");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 // const transporter = require("../config/mail");
-const { sendOtpEmail } = require("../config/mail");
+// const { Resend } = require("resend");
+const transactionalEmailsApi = require("../config/mail");
+const SibApiV3Sdk = require("@getbrevo/brevo");
 
+
+// const resend = new Resend(process.env.RESEND_API_KEY);
 async function sendOtp(req, res){
     try{
         const { email } = req.body;
@@ -50,40 +54,40 @@ async function sendOtp(req, res){
 
         console.log("Sending email...");
 
-        // await transporter.sendMail({
-        // from: `"QuickFix" <${process.env.EMAIL_USER}>`,
-        // to: email,
-        // subject: "QuickFix OTP Verification",
-        // html: `
-        //     <div style="font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px;">
-        //         <div style="max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 10px; text-align: center;">
+        //Email OTP
+        await transactionalEmailsApi.sendTransacEmail({
+    sender: { name: "QuickFix", email: "noreply.quickfix.update@gmail.com" },
+    to: [{ email: email }],
+    subject: "QuickFix OTP Verification",
+    htmlContent: `
+            <div style="font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px;">
+                <div style="max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 10px; text-align: center;">
                 
-        //         <h2 style="color: #333;">
-        //             <img src="https://ik.imagekit.io/nuavc0dai/service.svg" width="120" />
-        //         </h2>
+                <h2 style="color: #333;">
+                    <img src="https://ik.imagekit.io/nuavc0dai/service.svg" width="120" />
+                </h2>
                 
-        //         <h3 style="color: #444;">OTP Verification</h3>
+                <h3 style="color: #444;">OTP Verification</h3>
                 
-        //         <p style="color: #666;">Use the OTP below to complete your registration:</p>
+                <p style="color: #666;">Use the OTP below to complete your registration:</p>
                 
-        //         <div style="font-size: 28px; font-weight: bold; color: #2d89ef; margin: 20px 0;">
-        //             ${otp}
-        //         </div>
+                <div style="font-size: 28px; font-weight: bold; color: #2d89ef; margin: 20px 0;">
+                    ${otp}
+                </div>
                 
-        //         <p style="color: #999;">This OTP is valid for 5 minutes ⏱️</p>
+                <p style="color: #999;">This OTP is valid for 5 minutes ⏱️</p>
                 
-        //         <hr style="margin: 20px 0;">
+                <hr style="margin: 20px 0;">
                 
-        //         <p style="font-size: 12px; color: #aaa;">
-        //             If you did not request this, please ignore this email.
-        //         </p>
-        //         </div>
-        //     </div>
-        //     `
-        // });
+                <p style="font-size: 12px; color: #aaa;">
+                    If you did not request this, please ignore this email.
+                </p>
+                </div>
+            </div>
+            `
+        });
 
-        await sendOtpEmail(email, otp);
-
+        // await transactionalEmailsApi.sendTransacEmail(sendSmtpEmail);
         console.log("Email sent successfully!");
 
         res.json({
@@ -136,9 +140,9 @@ async function verifyOtp(req, res){
 
 
         console.log("ENTERED OTP:", otp);
-        console.log("SAVED OTP:", user.otp);
-        console.log("EXPIRE:", user.otpExpire);
-        console.log("NOW:", Date.now());
+console.log("SAVED OTP:", user.otp);
+console.log("EXPIRE:", user.otpExpire);
+console.log("NOW:", Date.now());
 
         //Update existing user
         user.name = name;
@@ -229,6 +233,95 @@ async function login(req, res){
         })
     }
 }
+
+// //Register
+// async function register(req,res){
+//     try{
+//         console.log("Register Body:", req.body);
+
+//         const { name,email,password,role, serviceType, profession } = req.body;
+
+//         if (!name || !email || !password) {
+//             return res.status(400).json({ message: "All fields are required" });
+//         }
+
+//         //valid role
+//         const userRole = role === "provider" ? "provider" : "user";
+
+//         //Check exixting user
+//         const existingUser = await User.findOne({ email });
+//         if(existingUser)
+//             return res.status(400).json({ message: "User already exixts"});
+
+//         //hash password
+//         const hashedPassword = await bcrypt.hash(password, 10);
+
+//         //create user
+//         const user = await User.create({
+//             name,
+//             email,
+//             password:hashedPassword,
+//             role: userRole,
+//             profession: userRole === "provider" ? profession : null,
+//             isApproved: userRole === "provider" ? false : true,
+//         });
+
+//         res.status(201).json({
+//             message: "User Registered Successfully"
+//         });
+
+//     }catch(err){
+//         console.error(err)
+//         res.status(500).json({ error: err.message})
+//     }
+// };
+
+// async function login(req, res){
+
+//     try{
+//         const { email, password } = req.body;
+
+//         //check user exists
+//         const user = await User.findOne({ email });
+//         if(!user){
+//             return res.status(400).json({ message: "Email not found"});
+//         }
+
+//         if(user.role === "provider" && !user.isApproved){
+//             return res.status(403).json({
+//                 success: false,
+//                 message: "Wait for admin approval ⌛"
+//             })
+//         }
+
+//         //compare password
+//         const isMatch = await bcrypt.compare(password, user.password);
+//         if(!isMatch){
+//             return res.status(400).json({ message: "Incorrect password"})
+//         }
+
+//         //Generate token
+//         const token = jwt.sign(
+//             { id: user._id , role: user.role},
+//             process.env.JWT_SECRET,
+//             { expiresIn: "7d" }
+//         );
+
+//         res.status(200).json({
+//             message: "Login successful",
+//             token,
+//             user:{
+//                 id: user._id,
+//                 name: user.name,
+//                 email: user.email,
+//                 role: user.role
+//             }
+//         });
+
+//     }catch(err){
+//         res.status(500).json({ message: err.message});
+//     }
+// }
 
 module.exports = { 
     sendOtp,

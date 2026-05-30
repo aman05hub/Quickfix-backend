@@ -1,34 +1,40 @@
-const axios = require("axios");
+// const nodemailer = require("nodemailer");
+// const Brevo = require("@getbrevo/brevo");
+// require("dotenv").config();
 
-async function sendOtpEmail(toEmail, otp) {
-    const response = await axios.post(
-        "https://api.brevo.com/v3/smtp/email",
-        {
-            sender: { name: "QuickFix", email: "noreply.quickfix.update@gmail.com" },
-            to: [{ email: toEmail }],
-            subject: "QuickFix OTP Verification",
-            htmlContent: `
-                <div style="font-family:Arial,sans-serif;background:#f4f4f4;padding:20px;">
-                    <div style="max-width:500px;margin:auto;background:white;padding:30px;border-radius:12px;text-align:center;">
-                        <h2 style="color:#4f46e5;">QuickFix ⚡</h2>
-                        <p style="color:#666;">Use the OTP below to complete your registration:</p>
-                        <div style="font-size:36px;font-weight:bold;color:#4f46e5;letter-spacing:10px;margin:25px 0;">
-                            ${otp}
-                        </div>
-                        <p style="color:#999;">Valid for 5 minutes ⏱️</p>
-                        <p style="font-size:12px;color:#aaa;">If you did not request this, ignore this email.</p>
-                    </div>
-                </div>
-            `
-        },
-        {
-            headers: {
-                "api-key": process.env.BREVO_API_KEY,
-                "Content-Type": "application/json"
-            }
-        }
-    );
-    return response.data;
-}
+// // const transporter = nodemailer.createTransport({
 
-module.exports = { sendOtpEmail };
+// //     host: "smtp.gmail.com",
+// //     port: 587,
+// //     secure: false,
+
+// //     auth: {
+// //         user: process.env.EMAIL_USER,
+// //         pass: process.env.EMAIL_PASS
+// //     },
+
+// //     tls: {
+// //         rejectUnauthorized: false
+// //     },
+
+// //     connectionTimeout: 10000,
+// //     greetingTimeout: 10000,
+// //     socketTimeout: 10000
+    
+// // });
+
+// // module.exports = transporter;
+
+// const client = Brevo.ApiClient.instance;
+// client.authentications["api-key"].apiKey = process.env.BREVO_API_KEY;
+
+// const transactionalEmailsApi = new Brevo.TransactionalEmailsApi();
+
+// module.exports = transactionalEmailsApi;
+
+const { BrevoClient } = require("@getbrevo/brevo");
+require("dotenv").config();
+
+const client = new BrevoClient({ apiKey: process.env.BREVO_API_KEY });
+
+module.exports = client.transactionalEmails;
