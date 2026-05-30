@@ -24,6 +24,27 @@ const serviceSchema = new mongoose.Schema({
         enum:["electrician","plumber","cleaning","ac"]
     },
 
+    serviceType:{
+    type:String,
+    required:true,
+    enum:[
+        "AC Cleaning",
+        "AC Repair",
+        "Fan Repair",
+        "Laptop Repair",
+        "Mobile Repair",
+        "Electrician",
+        "Plumber",
+        "Painter",
+        "Carpenter",
+        "Home Cleaning",
+        "Water Purifier",
+        "TV Repair",
+        "Washing Machine Repair",
+        "Refrigerator Repair"
+    ]
+},
+
     provider: {
         type: mongoose.Schema.Types.ObjectId,
         ref:"User",
