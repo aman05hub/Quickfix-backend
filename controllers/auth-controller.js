@@ -2,10 +2,11 @@ require("dotenv").config();
 const User = require("../models/User-model");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-// const transporter = require("../config/mail");
+const transporter = require("../config/mail");
 // const { Resend } = require("resend");
-const transactionalEmailsApi = require("../config/mail");
-const SibApiV3Sdk = require("@getbrevo/brevo");
+
+// const transactionalEmailsApi = require("../config/mail");
+// const SibApiV3Sdk = require("@getbrevo/brevo");
 
 
 // const resend = new Resend(process.env.RESEND_API_KEY);
@@ -55,11 +56,16 @@ async function sendOtp(req, res){
         console.log("Sending email...");
 
         //Email OTP
-        await transactionalEmailsApi.sendTransacEmail({
-    sender: { name: "QuickFix", email: "noreply.quickfix.update@gmail.com" },
-    to: [{ email: email }],
-    subject: "QuickFix OTP Verification",
-    htmlContent: `
+    //     await transactionalEmailsApi.sendTransacEmail({
+    // sender: { name: "QuickFix", email: "noreply.quickfix.update@gmail.com" },
+    // to: [{ email: email }],
+    // subject: "QuickFix OTP Verification",
+    // htmlContent: `
+        await transporter.sendMail({
+        from: `"QuickFix" <${process.env.EMAIL_USER}>`,
+        to: email,
+        subject: "QuickFix OTP Verification",
+        html: `
             <div style="font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px;">
                 <div style="max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 10px; text-align: center;">
                 
